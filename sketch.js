@@ -3,9 +3,9 @@ let handpose;
 let predictions = [];
 
 function setup() {
-    createCanvas(640, 480);
+    createCanvas(1280, 480);  // Make canvas wider (doubled width)
     video = createCapture(VIDEO);
-    video.size(width, height);
+    video.size(640, 480);     // Keep original video size
     video.hide();
 
     handpose = ml5.handpose(video, {
@@ -22,12 +22,22 @@ function modelReady() {
 }
 
 function draw() {
-    image(video, 0, 0, width, height);
-
+    background(50);  // Dark background
+    
+    // Draw video on the left side
+    image(video, 0, 0, 640, 480);
+    
+    // Draw hand visualization on the right side
     if (predictions.length > 0) {
+        push();
+        translate(640, 0);  // Move to right side
+        // Draw visualization area background
+        fill(30);
+        rect(0, 0, 640, 480);
         drawKeypoints();
         drawSkeleton();
         determineAndDisplayHand();
+        pop();
     }
 }
 
@@ -35,7 +45,7 @@ function drawKeypoints() {
     const hand = predictions[0];
     const landmarks = hand.landmarks;
 
-    // Draw keypoints
+    // Scale the points to fit the visualization area
     for (let i = 0; i < landmarks.length; i++) {
         const [x, y] = landmarks[i];
         fill(0, 255, 0);
