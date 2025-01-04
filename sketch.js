@@ -3,15 +3,12 @@ let handpose;
 let predictions = [];
 
 function setup() {
-    createCanvas(1280, 480);  // Make canvas wider (doubled width)
+    createCanvas(1280, 480);
     video = createCapture(VIDEO);
-    video.size(640, 480);     // Keep original video size
+    video.size(640, 480);
     video.hide();
 
-    handpose = ml5.handpose(video, {
-        flipHorizontal: true // Add this to correct mirror effect
-    }, modelReady);
-    
+    handpose = ml5.handpose(video, modelReady);
     handpose.on("predict", results => {
         predictions = results;
     });
@@ -22,79 +19,62 @@ function modelReady() {
 }
 
 function draw() {
-    background(50);  // Dark background
+    background(50);
     
-    // Draw video on the left side
+    // Left side - video
+    push();
     image(video, 0, 0, 640, 480);
+    pop();
     
-    // Draw hand visualization on the right side
+    // Right side - hand tracking visualization
+    push();
+    translate(640, 0);
+    fill(30);
+    rect(0, 0, 640, 480);
+    
     if (predictions.length > 0) {
-        push();
-        translate(640, 0);  // Move to right side
-        // Draw visualization area background
-        fill(30);
-        rect(0, 0, 640, 480);
-        drawKeypoints();
-        drawSkeleton();
-        determineAndDisplayHand();
-        pop();
-    }
-}
-
-function drawKeypoints() {
-    const hand = predictions[0];
-    const landmarks = hand.landmarks;
-
-    // Scale the points to fit the visualization area
-    for (let i = 0; i < landmarks.length; i++) {
-        const [x, y] = landmarks[i];
-        fill(0, 255, 0);
-        noStroke();
-        circle(x, y, 10);
-    }
-}
-
-function drawSkeleton() {
-    const hand = predictions[0];
-    const annotations = hand.annotations;
-    
-    // Draw palm
-    stroke(255, 0, 0);
-    strokeWeight(2);
-    for (let j = 0; j < annotations.palmBase.length; j++) {
-        const [x, y] = annotations.palmBase[j];
-        circle(x, y, 5);
-    }
-
-    // Draw fingers
-    const fingers = Object.keys(annotations).filter(key => key !== 'palmBase');
-    for (let finger of fingers) {
-        const points = annotations[finger];
-        for (let i = 0; i < points.length - 1; i++) {
-            const [x1, y1] = points[i];
-            const [x2, y2] = points[i + 1];
-            line(x1, y1, x2, y2);
+        const hand = predictions[0];
+        
+        // Draw dots in red
+        for (let i = 0; i < hand.landmarks.length; i++) {
+            const [x, y] = hand.landmarks[i];
+            fill(255, 0, 0);  // Changed to red
+            noStroke();
+            circle(x, y, 10);
         }
+        
+        // Draw lines in green
+        stroke(0, 255, 0);  // Changed to green
+        strokeWeight(2);
+        
+        // Draw connections between landmarks
+        const fingers = [
+            [0, 1, 2, 3, 4],        // thumb
+            [0, 5, 6, 7, 8],        // index finger
+            [0, 9, 10, 11, 12],     // middle finger
+            [0, 13, 14, 15, 16],    // ring finger
+            [0, 17, 18, 19, 20]     // pinky
+        ];
+        
+        for (let finger of fingers) {
+            for (let i = 0; i < finger.length - 1; i++) {
+                const [x1, y1] = hand.landmarks[finger[i]];
+                const [x2, y2] = hand.landmarks[finger[i + 1]];
+                line(x1, y1, x2, y2);
+            }
+        }
+
+        // Determine hand type - inverted logic
+        const thumb = hand.landmarks[4];  // Thumb tip
+        const pinky = hand.landmarks[20]; // Pinky tip
+        const isRightHand = thumb[0] > pinky[0];  // Changed from < to >
+        
+        // Display prediction text
+        fill(255);
+        noStroke();
+        textSize(32);
+        textAlign(CENTER);
+        text(`Predicted: ${isRightHand ? 'Right' : 'Left'} Hand`, 320, 50);
     }
-}
-
-function determineAndDisplayHand() {
-    const hand = predictions[0];
-    const thumb = hand.annotations.thumb[3];  // Tip of thumb
-    const pinky = hand.annotations.pinky[3];  // Tip of pinky
-    
-    // If thumb is to the left of pinky, it's likely a right hand
-    const isRightHand = thumb[0] < pinky[0];
-    
-    // Display the prediction
-    fill(255);
-    stroke(0);
-    strokeWeight(2);
-    textSize(32);
-    textAlign(LEFT, TOP);
-    text(`Predicted: ${isRightHand ? 'Right' : 'Left'} Hand`, 10, 10);
-}
-
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
+    pop();
 }
