@@ -22,13 +22,12 @@ function modelReady() {
 }
 
 function draw() {
-    // Show video normally
     image(video, 0, 0, width, height);
 
-    // Draw hand skeleton
     if (predictions.length > 0) {
         drawKeypoints();
         drawSkeleton();
+        determineAndDisplayHand();
     }
 }
 
@@ -67,6 +66,23 @@ function drawSkeleton() {
             line(x1, y1, x2, y2);
         }
     }
+}
+
+function determineAndDisplayHand() {
+    const hand = predictions[0];
+    const thumb = hand.annotations.thumb[3];  // Tip of thumb
+    const pinky = hand.annotations.pinky[3];  // Tip of pinky
+    
+    // If thumb is to the left of pinky, it's likely a right hand
+    const isRightHand = thumb[0] < pinky[0];
+    
+    // Display the prediction
+    fill(255);
+    stroke(0);
+    strokeWeight(2);
+    textSize(32);
+    textAlign(LEFT, TOP);
+    text(`Predicted: ${isRightHand ? 'Right' : 'Left'} Hand`, 10, 10);
 }
 
 function windowResized() {
