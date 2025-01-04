@@ -1,0 +1,20 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+}
+
+canvas {
+    border: 1px solid #000;
+    width: 100vw;
+    height: 100vh;
+}
+
+video {
+    width: 80vw;
+    height: 80vh;
+    object-fit: cover;
+}
