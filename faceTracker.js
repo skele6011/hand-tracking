@@ -70,7 +70,7 @@ function drawFaceLandmarks() {
         endShape(CLOSE);
     });
 
-    // Draw status text
+    // Draw status text - This might need fixing
     fill(255);
     noStroke();
     textSize(24);

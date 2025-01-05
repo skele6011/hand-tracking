@@ -1,6 +1,8 @@
 let video;
 let handpose;
 let predictions = [];
+let isDarkMode = false;
+let lastToggleTime = Date.now();
 
 function setup() {
     createCanvas(1280, 480);
@@ -19,7 +21,8 @@ function modelReady() {
 }
 
 function draw() {
-    background(50);
+    // Change background based on gesture
+    background(isDarkMode ? 0 : 50);
     
     // Left side - video
     push();
@@ -29,12 +32,31 @@ function draw() {
     // Right side - hand tracking visualization
     push();
     translate(640, 0);
-    fill(30);
+    fill(isDarkMode ? 0 : 30);
     rect(0, 0, 640, 480);
     
     if (predictions.length > 0) {
         const hand = predictions[0];
         
+        // Check for thumb-index finger pinch
+        const thumbTip = hand.landmarks[4];  // Thumb tip
+        const indexTip = hand.landmarks[8];  // Index finger tip
+        
+        // Calculate distance between thumb and index finger tips
+        const distance = Math.hypot(thumbTip[0] - indexTip[0], thumbTip[1] - indexTip[1]);
+        
+        if (distance < 20) {  // You might need to adjust this threshold
+            const now = Date.now();
+            
+            // Add delay to prevent multiple toggles
+            if (now - lastToggleTime > 1000) {  // 1 second delay
+                // Open link in new tab
+                window.open('https://games-unblock.github.io/games-unblock/', '_blank');
+                lastToggleTime = now;
+            }
+        }
+
+        // Draw hand landmarks
         // Draw dots in red
         for (let i = 0; i < hand.landmarks.length; i++) {
             const [x, y] = hand.landmarks[i];
